@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dino Game</title>
+<style>
+    * {
+        padding: 0;
+        margin: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        background-color: #f7f7f7;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+    }
+
+    .game-container {
+        position: relative;
+        width: 600px;
+        height: 200px;
+        border: 2px solid black;
+        overflow: hidden;
+        background-image: url("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQzhLOM2e81sTOAXtCFRT6gR5Uaak-WlQn4gw&usqp=CAU");
+        background-size: 30%;
+        background-repeat: repeat-x;
+    }
+
+    .dino {
+        position: absolute;
+        bottom: 0;
+        left: 20px;
+        height: 50px;
+        width: 50px;
+        background-image: url("https://media0.giphy.com/media/3CCXHZWV6F6O9VQ7FL/giphy.gif?cid=790b76118yxcdmlu8zzktgdnw94l421v4qlkonlix5xdql5y&ep=v1_gifs_search&rid=giphy.gif&ct=g");
+        background-size: cover;
+        transition: transform 0.2s ease-in-out;
+    }
+
+    .block {
+        position: absolute;
+        bottom: 0;
+        height: 20px;
+        width: 20px;
+        background-image: url("https://cdn.dribbble.com/users/249572/screenshots/2408458/mario-blocks-02.gif");
+        background-size: cover;
+        animation: moveBlock 3s linear infinite;
+    }
+
+    .collectible {
+        position: absolute;
+        bottom: 0;
+        right: 20px;
+        height: 20px;
+        width: 20px;
+        background-color: yellow;
+        border-radius: 50%;
+        animation: pulse 1s infinite;
+    }
+
+    #score {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        font-size: 24px;
+    }
+
+    @keyframes moveBlock {
+        0% {
+            left: calc(100% - 20px); /* Initial position: right edge of the game container */
+        }
+        100% {
+            left: -20px; /* Final position: left edge of the game container */
+        }
+    }
+
+    @keyframes pulse {
+        0% {
+            transform: scale(1);
+        }
+        50% {
+            transform: scale(1.2);
+        }
+        100% {
+            transform: scale(1);
+        }
+    }
+</style>
+</head>
+<body>
+<div class="game-container">
+    <div class="dino" onclick="jumpDino()"></div>
+    <div class="block"></div>
+    <div class="collectible" id="collectible"></div>
+</div>
+<div id="score">0</div>
+
+<script>
+    const dino = document.querySelector('.dino');
+    const collectible = document.getElementById('collectible');
+    const scoreDisplay = document.getElementById('score');
+    let score = 0;
+    let isJumping = false;
+    let blockIterationCompleted = false;
+
+    function jumpDino() {
+        if (!isJumping) {
+            isJumping = true;
+            dino.style.transform = 'translateY(-100px)';
+            setTimeout(() => {
+                dino.style.transform = 'translateY(0)';
+                isJumping = false;
+            }, 400);
+        }
+    }
+
+    function moveBlock() {
+        const block = document.querySelector('.block');
+        block.style.animation = 'none';
+        setTimeout(() => {
+            block.style.animation = 'moveBlock 3s linear infinite';
+        }, 100);
+    }
+
+    function moveCollectible() {
+        const newPosition = Math.floor(Math.random() * 180) + 10;
+        collectible.style.bottom = `${newPosition}px`;
+    }
+
+    function checkCollision() {
+        const dinoRect = dino.getBoundingClientRect();
+        const blockRect = document.querySelector('.block').getBoundingClientRect();
+        const collectibleRect = collectible.getBoundingClientRect();
+        if (
+            dinoRect.left < blockRect.right &&
+            dinoRect.right > blockRect.left &&
+            dinoRect.bottom > blockRect.top &&
+            dinoRect.top < blockRect.bottom
+        ) {
+            gameOver();
+        }
+        if (
+            dinoRect.left < collectibleRect.right &&
+            dinoRect.right > collectibleRect.left &&
+            dinoRect.bottom > collectibleRect.top &&
+            dinoRect.top < collectibleRect.bottom
+        ) {
+            score += 10;
+            scoreDisplay.textContent = score;
+            moveCollectible();
+        }
+    }
+
+    function gameOver() {
+        alert(`Game Over! Your score: ${score}`);
+        score = 0;
+        scoreDisplay.textContent = score;
+        blockIterationCompleted = false;
+        moveBlock();
+        moveCollectible();
+    }
+
+    setInterval(() => {
+        checkCollision();
+        if (blockIterationCompleted) {
+            score++;
+            scoreDisplay.textContent = score;
+            blockIterationCompleted = false;
+        }
+    }, 100);
+    moveBlock();
+    moveCollectible();
+
+    document.querySelector('.block').addEventListener('animationiteration', () => {
+        blockIterationCompleted = true;
+    });
+</script>
+</body>
+</html>
